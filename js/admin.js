@@ -101,6 +101,7 @@
     });
   }
 
+  // 画像を軽量リサイズ（圧縮）してBase64化する関数（ファイルサイズ肥大化防止）
   function handleImageFile(file, hiddenInput, previewWrapper, previewImg, dropContent) {
     if (!file.type.startsWith('image/')) {
       alert('画像ファイルを選択してください。');
@@ -109,11 +110,33 @@
 
     const reader = new FileReader();
     reader.onload = function(e) {
-      const result = e.target.result;
-      hiddenInput.value = result;
-      previewImg.src = result;
-      previewWrapper.style.display = 'block';
-      dropContent.style.display = 'none';
+      const img = new Image();
+      img.onload = function() {
+        // 最大幅 800px にリサイズして圧縮
+        const maxWidth = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // JPEG圧縮（画質0.8）で大幅軽量化
+        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+        hiddenInput.value = resizedBase64;
+        previewImg.src = resizedBase64;
+        previewWrapper.style.display = 'block';
+        dropContent.style.display = 'none';
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
@@ -341,7 +364,6 @@
     reader.onload = function(event) {
       try {
         let content = event.target.result;
-        // もしdata.js形式であればJSON抽出
         if (content.includes('const BPB_DATA =')) {
           content = content.replace(/^[^{]*const\s+BPB_DATA\s*=\s*/, '').replace(/;\s*$/, '');
         }
