@@ -27,38 +27,43 @@
   const backToTopBtn = document.getElementById('back-to-top-btn');
   const logoBtn = document.getElementById('logo-btn');
 
-  // --- 🌟 世界累計来訪者カウンター機能 (CounterAPI連動) ---
-  const COUNTER_API_URL = "https://api.counterapi.dev/v1/katad-apps/bpb-wiki-views";
-
+  // --- 🌟 世界累計来訪者カウンター機能 (二重API＋ローカルフォールバック対応) ---
   async function initGlobalCounter() {
+    // 1. メインAPI: Abacus Counter API
     try {
-      const response = await fetch(`${COUNTER_API_URL}/up`);
+      const response = await fetch("https://abacus.jasoncameron.dev/hit/katad-bpb-wiki/pageviews");
       if (response.ok) {
         const data = await response.json();
-        const count = data.count || data.value || 1;
-        updateGlobalCounterUI(count);
-      } else {
-        fetchCounterWithoutIncrement();
+        const count = data.value || data.count;
+        if (typeof count === 'number' && count > 0) {
+          updateGlobalCounterUI(count);
+          return;
+        }
       }
     } catch (e) {
-      console.warn("Global counter fetch failed, fallback to read mode.", e);
-      fetchCounterWithoutIncrement();
+      console.warn("Primary counter API failed, trying secondary...", e);
     }
-  }
 
-  async function fetchCounterWithoutIncrement() {
+    // 2. サブAPI: CounterAPI.dev
     try {
-      const response = await fetch(COUNTER_API_URL);
+      const response = await fetch("https://api.counterapi.dev/v1/katad-bpb-wiki/pageviews/up");
       if (response.ok) {
         const data = await response.json();
-        const count = data.count || data.value || 1;
-        updateGlobalCounterUI(count);
-      } else {
-        updateGlobalCounterUI("ー");
+        const count = data.count || data.value;
+        if (typeof count === 'number' && count > 0) {
+          updateGlobalCounterUI(count);
+          return;
+        }
       }
-    } catch(e) {
-      updateGlobalCounterUI("ー");
+    } catch (e) {
+      console.warn("Secondary counter API failed, fallback to local counter...", e);
     }
+
+    // 3. ローカルフォールバック（オフライン・通信ブロック時）
+    let localCount = parseInt(localStorage.getItem('bpb_visit_counter') || '10', 10);
+    localCount++;
+    localStorage.setItem('bpb_visit_counter', localCount.toString());
+    updateGlobalCounterUI(localCount);
   }
 
   function updateGlobalCounterUI(value) {
@@ -186,7 +191,7 @@
     `;
 
     let html = `
-      <div style="background: #fff; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-md); margin-bottom: 32px;">
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-md); margin-bottom: 32px;">
         <h2 style="font-size: 1.3rem; margin-bottom: 16px; color: var(--text-main);">📌 クラス・カテゴリを選択してビルドをチェック</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 20px;">
     `;
@@ -205,7 +210,7 @@
         html += `
           <div class="rank-item-link disabled" style="padding: 16px; display: flex; align-items: center; justify-content: space-between;">
             <span style="font-size: 1.05rem; font-weight: 700;">${c.icon} ${c.name}(準備中)</span>
-            <span style="background: #e2e8f0; color: var(--text-muted); padding: 2px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 800;">-</span>
+            <span style="background: var(--bg-main); color: var(--text-muted); padding: 2px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 800;">-</span>
           </div>
         `;
       }
@@ -399,7 +404,40 @@
     return escapeHtml(text).replace(/\n/g, '<br>');
   }
 
+  // --- 🌙 テーマ切替（ダークモード / ライトモード）機能 ---
+  function initThemeToggle() {
+    const toggleBtn = document.getElementById('theme-toggle-btn');
+    const savedTheme = localStorage.getItem('bpb_theme') || 'light';
+    
+    applyTheme(savedTheme);
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        const currentTheme = document.body.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
+        localStorage.setItem('bpb_theme', newTheme);
+      });
+    }
+  }
+
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      document.body.setAttribute('data-theme', 'dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.body.removeAttribute('data-theme');
+      document.documentElement.removeAttribute('data-theme');
+    }
+    const toggleBtn = document.getElementById('theme-toggle-btn');
+    if (toggleBtn) {
+      toggleBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+      toggleBtn.title = theme === 'dark' ? 'ライトモードに切替' : 'ダークモードに切替';
+    }
+  }
+
   // 初期化実行
+  initThemeToggle();
   renderNavTabs();
   renderPageContent('main');
 

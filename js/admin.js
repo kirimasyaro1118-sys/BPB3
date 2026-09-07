@@ -183,66 +183,110 @@
     renderTipsList();
   }
 
-  // ビルド一覧のレンダリング
+  // ビルド一覧のレンダリング (クラス別グループ表示)
   function renderBuildList() {
     adminBuildList.innerHTML = '';
 
     if (currentData.builds.length === 0) {
-      adminBuildList.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem;">登録されたビルドはありません。</div>`;
+      adminBuildList.innerHTML = `<div style="color: var(--text-muted); font-size: 0.9rem; padding: 16px; text-align: center;">登録されたビルドはありません。</div>`;
       return;
     }
 
-    currentData.builds.forEach((build, index) => {
-      const classObj = currentData.classes.find(c => c.id === build.classId);
-      const className = classObj ? `${classObj.icon} ${classObj.name}` : build.classId;
+    // クラスごとにグループ化して描画
+    currentData.classes.forEach(c => {
+      const classBuilds = currentData.builds.filter(b => b.classId === c.id);
+      if (classBuilds.length === 0) return;
 
-      const item = document.createElement('div');
-      item.style.cssText = 'background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px;';
-      
-      const rankTagClass = build.rank === 'S' ? 'tag-s' : (build.rank === 'A' ? 'tag-a' : 'tag-b');
+      const groupContainer = document.createElement('div');
+      groupContainer.style.cssText = 'margin-bottom: 16px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px;';
 
-      const isFirst = (index === 0);
-      const isLast = (index === currentData.builds.length - 1);
+      const groupHeader = document.createElement('div');
+      groupHeader.style.cssText = 'font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border-color); padding-bottom: 6px;';
+      groupHeader.innerHTML = `
+        <span style="display: flex; align-items: center; gap: 6px;">${c.icon} ${escapeHtml(c.name)}</span>
+        <span style="background: var(--primary-light); color: var(--primary); font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: var(--radius-full);">${classBuilds.length}件</span>
+      `;
+      groupContainer.appendChild(groupHeader);
 
-      item.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;">
-          <div style="display: flex; flex-direction: column; gap: 2px;">
-            <button class="btn-icon" ${isFirst ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''} onclick="window.moveBuildUp(${index})" title="上へ移動">▲</button>
-            <button class="btn-icon" ${isLast ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''} onclick="window.moveBuildDown(${index})" title="下へ移動">▼</button>
-          </div>
-          <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="rank-tag ${rankTagClass}">${build.rank}</span>
-              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">[${className}]</span>
-              <strong style="font-size: 0.95rem;">${escapeHtml(build.title)}</strong>
+      const itemsList = document.createElement('div');
+      itemsList.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
+
+      classBuilds.forEach((build, classIndex) => {
+        const item = document.createElement('div');
+        item.style.cssText = 'background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--text-main);';
+        
+        const rankTagClass = build.rank === 'S' ? 'tag-s' : (build.rank === 'A' ? 'tag-a' : 'tag-b');
+        const isFirst = (classIndex === 0);
+        const isLast = (classIndex === classBuilds.length - 1);
+
+        item.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <button class="btn-icon" ${isFirst ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''} onclick="window.moveBuildUp('${build.id}')" title="クラス内で上へ移動">▲</button>
+              <button class="btn-icon" ${isLast ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''} onclick="window.moveBuildDown('${build.id}')" title="クラス内で下へ移動">▼</button>
+            </div>
+            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="rank-tag ${rankTagClass}">${build.rank}</span>
+                <strong style="font-size: 0.9rem; color: var(--text-main);">${escapeHtml(build.title)}</strong>
+              </div>
             </div>
           </div>
-        </div>
-        <div style="display: flex; gap: 6px; flex-shrink: 0;">
-          <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="window.editBuild('${build.id}')">編集</button>
-          <button class="btn btn-danger" style="padding: 4px 10px; font-size: 0.8rem;" onclick="window.deleteBuild('${build.id}')">削除</button>
-        </div>
-      `;
-      adminBuildList.appendChild(item);
+          <div style="display: flex; gap: 6px; flex-shrink: 0;">
+            <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem;" onclick="window.editBuild('${build.id}')">編集</button>
+            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="window.deleteBuild('${build.id}')">削除</button>
+          </div>
+        `;
+        itemsList.appendChild(item);
+      });
+
+      groupContainer.appendChild(itemsList);
+      adminBuildList.appendChild(groupContainer);
     });
   }
 
-  // 並び替え: 上へ移動
-  window.moveBuildUp = function(index) {
-    if (index <= 0) return;
-    const temp = currentData.builds[index];
-    currentData.builds[index] = currentData.builds[index - 1];
-    currentData.builds[index - 1] = temp;
-    saveData();
+  // 並び替え: 同一クラス内で上へ移動
+  window.moveBuildUp = function(id) {
+    const index = currentData.builds.findIndex(b => b.id === id);
+    if (index < 0) return;
+    const targetBuild = currentData.builds[index];
+
+    let prevSameClassIndex = -1;
+    for (let i = index - 1; i >= 0; i--) {
+      if (currentData.builds[i].classId === targetBuild.classId) {
+        prevSameClassIndex = i;
+        break;
+      }
+    }
+
+    if (prevSameClassIndex !== -1) {
+      const temp = currentData.builds[index];
+      currentData.builds[index] = currentData.builds[prevSameClassIndex];
+      currentData.builds[prevSameClassIndex] = temp;
+      saveData();
+    }
   };
 
-  // 並び替え: 下へ移動
-  window.moveBuildDown = function(index) {
-    if (index >= currentData.builds.length - 1) return;
-    const temp = currentData.builds[index];
-    currentData.builds[index] = currentData.builds[index + 1];
-    currentData.builds[index + 1] = temp;
-    saveData();
+  // 並び替え: 同一クラス内で下へ移動
+  window.moveBuildDown = function(id) {
+    const index = currentData.builds.findIndex(b => b.id === id);
+    if (index < 0) return;
+    const targetBuild = currentData.builds[index];
+
+    let nextSameClassIndex = -1;
+    for (let i = index + 1; i < currentData.builds.length; i++) {
+      if (currentData.builds[i].classId === targetBuild.classId) {
+        nextSameClassIndex = i;
+        break;
+      }
+    }
+
+    if (nextSameClassIndex !== -1) {
+      const temp = currentData.builds[index];
+      currentData.builds[index] = currentData.builds[nextSameClassIndex];
+      currentData.builds[nextSameClassIndex] = temp;
+      saveData();
+    }
   };
 
   // ビルドフォーム編集モード設定
@@ -319,7 +363,7 @@
     adminTipsList.innerHTML = '';
     currentData.tips.forEach((tip, idx) => {
       const li = document.createElement('li');
-      li.style.cssText = 'background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.875rem;';
+      li.style.cssText = 'background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.875rem; color: var(--text-main);';
       li.innerHTML = `
         <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${idx + 1}. ${escapeHtml(tip)}</span>
         <button class="btn btn-danger" style="padding: 2px 8px; font-size: 0.75rem;" onclick="window.deleteTip(${idx})">削除</button>
@@ -430,7 +474,40 @@
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  // --- 🌙 テーマ切替（ダークモード / ライトモード）機能 ---
+  function initThemeToggle() {
+    const toggleBtn = document.getElementById('theme-toggle-btn');
+    const savedTheme = localStorage.getItem('bpb_theme') || 'light';
+    
+    applyTheme(savedTheme);
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        const currentTheme = document.body.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
+        localStorage.setItem('bpb_theme', newTheme);
+      });
+    }
+  }
+
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      document.body.setAttribute('data-theme', 'dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.body.removeAttribute('data-theme');
+      document.documentElement.removeAttribute('data-theme');
+    }
+    const toggleBtn = document.getElementById('theme-toggle-btn');
+    if (toggleBtn) {
+      toggleBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+      toggleBtn.title = theme === 'dark' ? 'ライトモードに切替' : 'ダークモードに切替';
+    }
+  }
+
   // 初期化実行
+  initThemeToggle();
   initClassSelect();
   initProfileSection();
   renderBuildList();
