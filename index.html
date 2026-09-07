@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>炊きパン’s BPBビルドまとめ - バックパックバトルズWiki</title>
+  <meta name="description" content="Steamのゲーム『バックパックバトルズ（Backpack Battles）』のクラス別ビルド・おすすめ構成・Tipsまとめ個人Wikiサイトです。">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ランダムTips通知バー -->
+  <div class="tips-bar" id="random-tips-bar">
+    <span class="tips-badge">💡 Tips</span>
+    <span class="tips-text" id="random-tips-text">読み込み中...</span>
+    <button class="tips-refresh" id="tips-refresh-btn" title="他のTipsを表示">↻</button>
+  </div>
+
+  <!-- ヘッダー -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="#" class="brand-logo" id="logo-btn">
+        <div class="logo-icon">🍞</div>
+        <span>炊きパン’s BPBビルドまとめ</span>
+      </a>
+      <div class="sub-links">
+        <span class="sub-link-item disabled">作った他のサイト(準備中)</span>
+        <span class="sub-link-item disabled">問い合わせ(準備中)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- クラス・カテゴリナビゲーション -->
+  <div class="nav-scroll-wrapper">
+    <nav class="main-nav" id="main-nav-tabs">
+      <!-- JavaScriptで動的生成 -->
+    </nav>
+  </div>
+
+  <!-- メインコンテンツ表示エリア -->
+  <main class="main-container">
+    
+    <!-- ページタイトルセクション -->
+    <div class="page-title-section" id="page-title-section">
+      <!-- JavaScriptで表示更新 -->
+    </div>
+
+    <!-- ビルド分類クイックナビゲーション表 -->
+    <div class="rank-summary-card" id="rank-summary-card" style="display: none;">
+      <div class="rank-summary-header">
+        <span>📊 ビルド一覧（クリックで移動）</span>
+      </div>
+      <div class="rank-grid">
+        <div class="rank-column">
+          <div class="rank-column-header">
+            <span>S</span>
+            <span class="rank-tag tag-s">S</span>
+          </div>
+          <ul class="rank-item-list" id="rank-list-s"></ul>
+        </div>
+        <div class="rank-column">
+          <div class="rank-column-header">
+            <span>A</span>
+            <span class="rank-tag tag-a">A</span>
+          </div>
+          <ul class="rank-item-list" id="rank-list-a"></ul>
+        </div>
+        <div class="rank-column">
+          <div class="rank-column-header">
+            <span>B</span>
+            <span class="rank-tag tag-b">B</span>
+          </div>
+          <ul class="rank-item-list" id="rank-list-b"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ビルドカード一覧コンテナ -->
+    <div class="build-list-container" id="build-list-container">
+      <!-- JavaScriptで動的描画 -->
+    </div>
+
+  </main>
+
+  <!-- 右下：最上部に戻るボタン -->
+  <button class="back-to-top" id="back-to-top-btn" title="ページの最上部へ戻る">▲</button>
+
+  <!-- データファイル・アプリ処理の読み込み -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
