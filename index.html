@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>炊きパン’s BPBビルドまとめ - バックパックバトルズWiki</title>
   <meta name="description" content="Steamのゲーム『バックパックバトルズ（Backpack Battles）』のクラス別ビルド・おすすめ構成・Tipsまとめ個人Wikiサイトです。">
-  <link rel="stylesheet" href="css/style.css?v=1.0.1">
+  <link rel="stylesheet" href="css/style.css?v=1.0.6">
 </head>
 <body>
 
@@ -23,6 +23,15 @@
         <div class="logo-icon">🍞</div>
         <span>炊きパン’s BPBビルドまとめ</span>
       </a>
+
+      <!-- 🌟 来訪者カウンターバッジ (CounterAPI連動) -->
+      <div class="global-counter-badge" id="global-counter" title="総来訪者数">
+        <span class="counter-label">👀 Total Visits:</span>
+        <div class="global-counter-value" id="global-counter-value">
+          <span class="counter-digit offline-dash">ー</span>
+        </div>
+      </div>
+
       <div class="sub-links">
         <span class="sub-link-item disabled">作った他のサイト(準備中)</span>
         <span class="sub-link-item disabled">問い合わせ(準備中)</span>
@@ -30,7 +39,7 @@
     </div>
   </header>
 
-  <!-- クラス・カテゴリナビゲーション -->
+  <!-- クラス・カテゴリナビゲーション (スマホ改行防止・横スクロール) -->
   <div class="nav-scroll-wrapper">
     <nav class="main-nav" id="main-nav-tabs">
       <!-- JavaScriptで動的生成 -->
@@ -53,21 +62,21 @@
       <div class="rank-grid">
         <div class="rank-column">
           <div class="rank-column-header">
-            <span>S</span>
+            <span>強い</span>
             <span class="rank-tag tag-s">S</span>
           </div>
           <ul class="rank-item-list" id="rank-list-s"></ul>
         </div>
         <div class="rank-column">
           <div class="rank-column-header">
-            <span>A</span>
+            <span>そこそこ</span>
             <span class="rank-tag tag-a">A</span>
           </div>
           <ul class="rank-item-list" id="rank-list-a"></ul>
         </div>
         <div class="rank-column">
           <div class="rank-column-header">
-            <span>B</span>
+            <span>微妙</span>
             <span class="rank-tag tag-b">B</span>
           </div>
           <ul class="rank-item-list" id="rank-list-b"></ul>
@@ -86,7 +95,7 @@
   <button class="back-to-top" id="back-to-top-btn" title="ページの最上部へ戻る">▲</button>
 
   <!-- データファイル・アプリ処理の読み込み (キャッシュクリア用クエリ付与) -->
-  <script src="js/data.js?v=1.0.1"></script>
-  <script src="js/app.js?v=1.0.1"></script>
+  <script src="js/data.js?v=1.0.7"></script>
+  <script src="js/app.js?v=1.0.7"></script>
 </body>
 </html>

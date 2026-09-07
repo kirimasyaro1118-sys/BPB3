@@ -131,6 +131,13 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.header-container::-webkit-scrollbar {
+  display: none;
 }
 
 .brand-logo {
@@ -141,6 +148,8 @@ a {
   font-weight: 800;
   color: var(--text-main);
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .brand-logo .logo-icon {
@@ -156,12 +165,66 @@ a {
   box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
 }
 
+/* --- 🌟 来訪者カウンターバッジ用スタイル --- */
+.global-counter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.counter-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.global-counter-value {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.counter-digit {
+  background: #1e293b;
+  color: #38bdf8;
+  font-family: monospace, sans-serif;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
+}
+
+.counter-comma {
+  color: var(--text-muted);
+  font-weight: 900;
+  font-size: 0.85rem;
+  margin: 0 1px;
+}
+
+.counter-digit.offline-dash {
+  color: #94a3b8;
+  background: #cbd5e1;
+}
+
 .sub-links {
   display: flex;
   align-items: center;
   gap: 16px;
   font-size: 0.9rem;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .sub-link-item {
@@ -191,6 +254,7 @@ a {
   overflow-x: auto;
   white-space: nowrap;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .nav-scroll-wrapper::-webkit-scrollbar {
@@ -202,6 +266,7 @@ a {
   margin: 0 auto;
   padding: 0 24px;
   display: flex;
+  flex-wrap: nowrap;
   gap: 4px;
 }
 
@@ -216,6 +281,8 @@ a {
   border-bottom: 3px solid transparent;
   cursor: pointer;
   transition: var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-tab.disabled {
@@ -405,19 +472,9 @@ a {
 
 .build-card-body {
   padding: 24px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
-}
-
-.build-card-body.single-column {
-  grid-template-columns: 1fr;
-}
-
-@media (max-width: 900px) {
-  .build-card-body {
-    grid-template-columns: 1fr;
-  }
 }
 
 .build-section-box {
@@ -462,10 +519,43 @@ a {
   border-radius: 4px;
 }
 
+/* 🌟 ビルド説明：改行（\n）を保持して綺麗に表示 */
 .build-description {
   font-size: 0.95rem;
   color: var(--text-main);
   line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 🌟 トップページの自己紹介・プロフィールカードスタイル */
+.profile-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-top: 32px;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-header {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-main);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.profile-content {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* --- Tipsページスタイル --- */

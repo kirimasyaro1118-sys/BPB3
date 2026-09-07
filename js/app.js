@@ -1,8 +1,16 @@
 // バックパックバトルズ ビルドまとめ メインアプリケーションロジック
 
 (function() {
-  // 1. データ初期化（公開サイトでは常に最新の data.js (BPB_DATA) を直接読み込み）
+  // 1. データ初期化（ローカル編集データがあれば最優先読み込み、無ければ data.js を初期値として利用）
   let currentData = BPB_DATA;
+  const savedData = localStorage.getItem('bpb_custom_data');
+  if (savedData) {
+    try {
+      currentData = JSON.parse(savedData);
+    } catch(e) {
+      console.warn("Failed to parse saved data from localStorage, fallback to BPB_DATA", e);
+    }
+  }
 
   let activeTabId = 'main';
 
@@ -18,6 +26,61 @@
   const buildListContainer = document.getElementById('build-list-container');
   const backToTopBtn = document.getElementById('back-to-top-btn');
   const logoBtn = document.getElementById('logo-btn');
+
+  // --- 🌟 世界累計来訪者カウンター機能 (CounterAPI連動) ---
+  const COUNTER_API_URL = "https://api.counterapi.dev/v1/katad-apps/bpb-wiki-views";
+
+  async function initGlobalCounter() {
+    try {
+      const response = await fetch(`${COUNTER_API_URL}/up`);
+      if (response.ok) {
+        const data = await response.json();
+        const count = data.count || data.value || 1;
+        updateGlobalCounterUI(count);
+      } else {
+        fetchCounterWithoutIncrement();
+      }
+    } catch (e) {
+      console.warn("Global counter fetch failed, fallback to read mode.", e);
+      fetchCounterWithoutIncrement();
+    }
+  }
+
+  async function fetchCounterWithoutIncrement() {
+    try {
+      const response = await fetch(COUNTER_API_URL);
+      if (response.ok) {
+        const data = await response.json();
+        const count = data.count || data.value || 1;
+        updateGlobalCounterUI(count);
+      } else {
+        updateGlobalCounterUI("ー");
+      }
+    } catch(e) {
+      updateGlobalCounterUI("ー");
+    }
+  }
+
+  function updateGlobalCounterUI(value) {
+    const el = document.getElementById('global-counter-value');
+    if (!el) return;
+
+    if (typeof value === 'number') {
+      const formatted = value.toLocaleString();
+      const html = formatted.split('').map(char => {
+        if (char === ',') {
+          return `<span class="counter-comma">,</span>`;
+        }
+        return `<span class="counter-digit">${char}</span>`;
+      }).join('');
+      el.innerHTML = html;
+    } else {
+      el.innerHTML = `<span class="counter-digit offline-dash">${value}</span>`;
+    }
+  }
+
+  // カウンター初期化実行
+  initGlobalCounter();
 
   // --- 2. ランダムTips処理 ---
   function updateRandomTips() {
@@ -42,9 +105,9 @@
     const topTab = createTabElement('main', 'トップ', '🏠', true);
     mainNavTabs.appendChild(topTab);
 
-    // クラス別 & 汎用 (エンジニアのみ有効、他は準備中)
+    // クラス別 & 汎用 (エンジニアとアドベンチャラーを有効化)
     currentData.classes.forEach(c => {
-      const isEnabled = (c.id === 'engineer');
+      const isEnabled = (c.id === 'engineer' || c.id === 'adventurer');
       const label = isEnabled ? c.name : `${c.name}(準備中)`;
       const tab = createTabElement(c.id, label, c.icon, isEnabled);
       mainNavTabs.appendChild(tab);
@@ -129,7 +192,7 @@
     `;
 
     currentData.classes.forEach(c => {
-      const isEnabled = (c.id === 'engineer');
+      const isEnabled = (c.id === 'engineer' || c.id === 'adventurer');
       const count = currentData.builds.filter(b => b.classId === c.id).length;
       if (isEnabled) {
         html += `
@@ -152,6 +215,18 @@
         </div>
       </div>
     `;
+
+    // 🌟 自己紹介・プロフィールカードを下部空間に描画
+    if (currentData.profile && currentData.profile.trim()) {
+      html += `
+        <div class="profile-card">
+          <div class="profile-header">
+            <span>🍞 管理者プロフィール / お知らせ</span>
+          </div>
+          <div class="profile-content">${formatTextWithNewlines(currentData.profile)}</div>
+        </div>
+      `;
+    }
     
     buildListContainer.innerHTML = html;
   }
@@ -245,12 +320,12 @@
           <h2 class="build-title">${escapeHtml(build.title)}</h2>
         </div>
       </div>
-      <div class="build-card-body ${!hasVariant ? 'single-column' : ''}">
+      <div class="build-card-body">
         <div class="build-section-box">
           <div class="build-image-wrapper">
             <img src="${buildImgSrc}" alt="${escapeHtml(build.title)}" onerror="this.src='${defaultImg}'">
           </div>
-          <p class="build-description">${escapeHtml(build.description)}</p>
+          <p class="build-description">${formatTextWithNewlines(build.description)}</p>
         </div>
 
         ${hasVariant ? `
@@ -259,7 +334,7 @@
             <div class="build-image-wrapper">
               <img src="${variantImgSrc}" alt="派生構成" onerror="this.src='${defaultImg}'">
             </div>
-            <p class="build-description">${escapeHtml(build.variantDescription || '')}</p>
+            <p class="build-description">${formatTextWithNewlines(build.variantDescription || '')}</p>
           </div>
         ` : ''}
       </div>
@@ -307,7 +382,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  // エスケープ関数
+  // エスケープ & 改行表示対応関数
   function escapeHtml(str) {
     if (!str) return '';
     return str
@@ -316,6 +391,12 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
+  }
+
+  function formatTextWithNewlines(str) {
+    if (!str) return '';
+    let text = str.replace(/\\n/g, '\n');
+    return escapeHtml(text).replace(/\n/g, '<br>');
   }
 
   // 初期化実行

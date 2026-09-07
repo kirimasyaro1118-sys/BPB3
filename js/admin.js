@@ -35,6 +35,9 @@
   const exportJsonBtn = document.getElementById('export-json-btn');
   const importJsonFile = document.getElementById('import-json-file');
 
+  const profileTextInput = document.getElementById('profile-text-input');
+  const saveProfileBtn = document.getElementById('save-profile-btn');
+
   // クラスドロップダウン初期化
   function initClassSelect() {
     buildClassSelect.innerHTML = '';
@@ -112,14 +115,19 @@
     reader.onload = function(e) {
       const img = new Image();
       img.onload = function() {
-        // 最大幅 800px にリサイズして圧縮
-        const maxWidth = 800;
+        // 最大幅 640px / 最大高さ 480px にリサイズして強力圧縮
+        const maxWidth = 640;
+        const maxHeight = 480;
         let width = img.width;
         let height = img.height;
 
         if (width > maxWidth) {
           height = Math.round((height * maxWidth) / width);
           width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
         }
 
         const canvas = document.createElement('canvas');
@@ -128,8 +136,8 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        // JPEG圧縮（画質0.8）で大幅軽量化
-        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+        // JPEG圧縮（画質0.65）で大幅軽量化（Base64サイズを数10KBに削減）
+        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.65);
 
         hiddenInput.value = resizedBase64;
         previewImg.src = resizedBase64;
@@ -165,7 +173,12 @@
 
   // 変更データの保存 (LocalStorage)
   function saveData() {
-    localStorage.setItem('bpb_custom_data', JSON.stringify(currentData));
+    try {
+      localStorage.setItem('bpb_custom_data', JSON.stringify(currentData));
+    } catch(e) {
+      console.warn("LocalStorage quota error", e);
+      alert('【ご注意】ブラウザの保存容量上限を超えたため、ローカルへの自動保存に失敗しました。\n\n「📥 ネット公開用 data.js を保存」ボタンからファイルを出力して js/data.js に保存するか、不要な画像を削除してください。');
+    }
     renderBuildList();
     renderTipsList();
   }
@@ -329,6 +342,23 @@
     saveData();
   };
 
+  // --- 🍞 自己紹介・お知らせの保存 ---
+  function initProfileSection() {
+    if (profileTextInput) {
+      profileTextInput.value = currentData.profile || '';
+    }
+  }
+
+  if (saveProfileBtn) {
+    saveProfileBtn.addEventListener('click', () => {
+      if (profileTextInput) {
+        currentData.profile = profileTextInput.value.trim();
+        saveData();
+        alert('トップ画面の自己紹介・お知らせを保存しました！');
+      }
+    });
+  }
+
   // --- 🌐 ネット公開用 data.js エクスポート ---
   if (exportDataJsBtn) {
     exportDataJsBtn.addEventListener('click', () => {
@@ -372,6 +402,7 @@
           currentData = importedData;
           saveData();
           initClassSelect();
+          initProfileSection();
           alert('データの復元・読み込みが完了しました！');
         } else {
           alert('無効なデータ形式のファイルです。');
@@ -383,6 +414,17 @@
     reader.readAsText(file);
   });
 
+  // --- データ初期化（リセット） ---
+  const resetDataBtn = document.getElementById('reset-data-btn');
+  if (resetDataBtn) {
+    resetDataBtn.addEventListener('click', () => {
+      if (confirm('ローカルの変更データをクリアして初期状態に戻しますか？\n（現在追加したビルド等は初期化されます）')) {
+        localStorage.removeItem('bpb_custom_data');
+        location.reload();
+      }
+    });
+  }
+
   function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -390,6 +432,7 @@
 
   // 初期化実行
   initClassSelect();
+  initProfileSection();
   renderBuildList();
   renderTipsList();
 
