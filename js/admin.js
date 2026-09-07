@@ -31,6 +31,7 @@
   const addTipBtn = document.getElementById('add-tip-btn');
   const adminTipsList = document.getElementById('admin-tips-list');
 
+  const exportDataJsBtn = document.getElementById('export-datajs-btn');
   const exportJsonBtn = document.getElementById('export-json-btn');
   const importJsonFile = document.getElementById('import-json-file');
 
@@ -146,7 +147,7 @@
     renderTipsList();
   }
 
-  // ビルド一覧のレンダリング (並び替えボタン付き)
+  // ビルド一覧のレンダリング
   function renderBuildList() {
     adminBuildList.innerHTML = '';
 
@@ -305,6 +306,21 @@
     saveData();
   };
 
+  // --- 🌐 ネット公開用 data.js エクスポート ---
+  if (exportDataJsBtn) {
+    exportDataJsBtn.addEventListener('click', () => {
+      const jsContent = `// バックパックバトルズ ビルドまとめ データファイル (自動生成)\nconst BPB_DATA = ${JSON.stringify(currentData, null, 2)};\n`;
+      const blob = new Blob([jsContent], { type: "text/javascript;charset=utf-8" });
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.href = URL.createObjectURL(blob);
+      downloadAnchor.download = "data.js";
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      alert('「data.js」をダウンロードしました！\n\nこのファイルをプロジェクトの「js/data.js」に上書き保存し、サーバーへアップロードしてください。');
+    });
+  }
+
   // --- JSONエクスポート ---
   exportJsonBtn.addEventListener('click', () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentData, null, 2));
@@ -316,7 +332,7 @@
     downloadAnchor.remove();
   });
 
-  // --- JSONインポート ---
+  // --- データ復元 (JSON/JS) インポート ---
   importJsonFile.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -324,17 +340,22 @@
     const reader = new FileReader();
     reader.onload = function(event) {
       try {
-        const importedData = JSON.parse(event.target.result);
+        let content = event.target.result;
+        // もしdata.js形式であればJSON抽出
+        if (content.includes('const BPB_DATA =')) {
+          content = content.replace(/^[^{]*const\s+BPB_DATA\s*=\s*/, '').replace(/;\s*$/, '');
+        }
+        const importedData = JSON.parse(content);
         if (importedData && importedData.builds && importedData.classes) {
           currentData = importedData;
           saveData();
           initClassSelect();
-          alert('データの読み込みが完了しました！');
+          alert('データの復元・読み込みが完了しました！');
         } else {
-          alert('無効なデータ形式のJSONファイルです。');
+          alert('無効なデータ形式のファイルです。');
         }
       } catch(err) {
-        alert('JSONファイルの読み込みエラー: ' + err.message);
+        alert('ファイルの読み込みエラー: ' + err.message);
       }
     };
     reader.readAsText(file);

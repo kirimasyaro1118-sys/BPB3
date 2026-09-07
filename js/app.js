@@ -1,14 +1,18 @@
 // バックパックバトルズ ビルドまとめ メインアプリケーションロジック
 
 (function() {
-  // 1. データ初期化（LocalStorageがあればそちらを採用）
+  // 1. データ初期化（LocalStorageがあればそちらを採用、壊れていればBPB_DATAに復元）
   let currentData = BPB_DATA;
   const savedData = localStorage.getItem('bpb_custom_data');
   if (savedData) {
     try {
-      currentData = JSON.parse(savedData);
+      const parsed = JSON.parse(savedData);
+      if (parsed && parsed.classes && Array.isArray(parsed.builds)) {
+        currentData = parsed;
+      }
     } catch(e) {
-      console.error('カスタムデータの読み込みに失敗しました', e);
+      console.error('カスタムデータの読み込みに失敗したため、初期データに復元します', e);
+      localStorage.removeItem('bpb_custom_data');
     }
   }
 
