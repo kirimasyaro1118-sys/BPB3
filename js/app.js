@@ -110,9 +110,9 @@
     const topTab = createTabElement('main', 'トップ', '🏠', true);
     mainNavTabs.appendChild(topTab);
 
-    // クラス別 & 汎用 (エンジニア・アドベンチャラー・リーパーを有効化)
+    // クラス別 & 汎用 (エンジニア・アドベンチャラー・リーパー・パイロマンサーを有効化)
     currentData.classes.forEach(c => {
-      const isEnabled = (c.id === 'engineer' || c.id === 'adventurer' || c.id === 'reaper');
+      const isEnabled = (c.id === 'engineer' || c.id === 'adventurer' || c.id === 'reaper' || c.id === 'pyromancer');
       const label = isEnabled ? c.name : `${c.name}(準備中)`;
       const tab = createTabElement(c.id, label, c.icon, isEnabled);
       mainNavTabs.appendChild(tab);
@@ -197,7 +197,7 @@
     `;
 
     currentData.classes.forEach(c => {
-      const isEnabled = (c.id === 'engineer' || c.id === 'adventurer' || c.id === 'reaper');
+      const isEnabled = (c.id === 'engineer' || c.id === 'adventurer' || c.id === 'reaper' || c.id === 'pyromancer');
       const count = currentData.builds.filter(b => b.classId === c.id).length;
       if (isEnabled) {
         html += `
