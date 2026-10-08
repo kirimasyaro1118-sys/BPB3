@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ローカル管理画面 - 炊きパン’s BPBビルドまとめ</title>
+  <link rel="stylesheet" href="css/style.css?v=1.1.2">
+  <script>
+    (function() {
+      var saved = localStorage.getItem('bpb_theme');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+<body>
+
+  <div class="admin-container">
+    <header class="admin-header">
+      <div>
+        <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">⚙️ 自分用ビルド・Tips管理画面</h1>
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 4px;">ローカル環境専用。ビルドの追加・編集・並び替え、およびネット公開用ファイル（data.js）の出力を行えます。</p>
+      </div>
+      <div class="admin-actions">
+        <button id="export-datajs-btn" class="btn btn-primary" style="background: linear-gradient(135deg, #059669, #047857);" title="ネット公開時にこのファイルをjs/data.jsに上書きしてください">
+          📥 ネット公開用 data.js を保存
+        </button>
+        <button id="export-json-btn" class="btn btn-secondary" title="バックアップ用JSONデータを出力">
+          💾 バックアップ(JSON)
+        </button>
+        <label class="btn btn-secondary" style="cursor: pointer;" title="保存したJSONまたはdata.jsを復元">
+          📤 データ復元
+          <input type="file" id="import-json-file" accept=".json,.js" style="display: none;">
+        </label>
+        <button id="reset-data-btn" class="btn btn-secondary" style="color: #dc2626;" title="表示がおかしい場合にローカルデータをリセット">
+          🔄 リセット
+        </button>
+        <button id="theme-toggle-btn" class="theme-toggle-btn" title="ダークモード/ライトモード切替">🌙</button>
+        <a href="index.html" class="btn btn-secondary">🏠 閲覧サイトに戻る</a>
+      </div>
+    </header>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+      
+      <!-- 左カラム: ビルド追加・編集フォーム -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm);">
+        <h2 id="form-title" style="font-size: 1.2rem; font-weight: 800; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">
+          ➕ ビルドの新規追加
+        </h2>
+
+        <form id="build-form">
+          <input type="hidden" id="build-id" value="">
+
+          <div class="form-group">
+            <label class="form-label" for="build-class">クラス (開始キャラクター)</label>
+            <select id="build-class" class="form-select" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="build-rank">ランク分類</label>
+            <select id="build-rank" class="form-select" required>
+              <option value="S">S (最強・おすすめ)</option>
+              <option value="A">A (強力・安定)</option>
+              <option value="B">B (中堅・初心者向け)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="build-title">ビルド名</label>
+            <input type="text" id="build-title" class="form-input" placeholder="例: キューブホリスピランプ" required>
+          </div>
+
+          <!-- メイン構成画像 (参照 & Drag & Drop) -->
+          <div class="form-group">
+            <label class="form-label">メイン画像 (ファイル選択・ドラッグ＆ドロップ)</label>
+            <div class="drop-zone" id="drop-zone-main">
+              <div class="drop-zone-content">
+                <span class="drop-icon">🖼️</span>
+                <p class="drop-text">ここに画像をドラッグ＆ドロップ<br>または <span class="drop-link">ファイルを選択</span></p>
+                <input type="file" id="file-input-main" class="file-input-hidden" accept="image/*">
+              </div>
+              <div class="image-preview-wrapper" id="preview-wrapper-main" style="display: none;">
+                <img src="" id="img-preview-main" alt="メイン画像プレビュー">
+                <button type="button" class="btn-clear-image" id="clear-img-main" title="画像を削除">✕</button>
+              </div>
+            </div>
+            <!-- データ保持用隠し入力 -->
+            <input type="hidden" id="build-image" value="">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="build-description">ビルド説明</label>
+            <textarea id="build-description" class="form-textarea" placeholder="ビルドの特徴、キーアイテム、戦い方などを記入"></textarea>
+          </div>
+
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+          <!-- 派生構成画像 (参照 & Drag & Drop) -->
+          <div class="form-group">
+            <label class="form-label">派生構成 画像 (任意: 無しの場合は非表示)</label>
+            <div class="drop-zone" id="drop-zone-variant">
+              <div class="drop-zone-content">
+                <span class="drop-icon">🖼️</span>
+                <p class="drop-text">ここに画像をドラッグ＆ドロップ<br>または <span class="drop-link">ファイルを選択</span></p>
+                <input type="file" id="file-input-variant" class="file-input-hidden" accept="image/*">
+              </div>
+              <div class="image-preview-wrapper" id="preview-wrapper-variant" style="display: none;">
+                <img src="" id="img-preview-variant" alt="派生画像プレビュー">
+                <button type="button" class="btn-clear-image" id="clear-img-variant" title="画像を削除">✕</button>
+              </div>
+            </div>
+            <!-- データ保持用隠し入力 -->
+            <input type="hidden" id="variant-image" value="">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="variant-description">派生構成 説明 (任意)</label>
+            <textarea id="variant-description" class="form-textarea" placeholder="バリエーションやサブ構成についての説明（空欄可）"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button type="submit" id="save-build-btn" class="btn btn-primary" style="flex: 1;">💾 ビルドを保存</button>
+            <button type="button" id="reset-form-btn" class="btn btn-secondary">リセット</button>
+          </div>
+        </form>
+
+        <hr style="border: none; border-top: 2px solid var(--border-color); margin: 32px 0 20px 0;">
+
+        <!-- トップページ変更履歴編集セクション -->
+        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 20px;">
+          <h2 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <span>📜</span> トップ画面の変更履歴編集
+          </h2>
+          <div class="form-group">
+            <label class="form-label" for="history-text-input">変更履歴の文章</label>
+            <textarea id="history-text-input" class="form-textarea" style="min-height: 110px;" placeholder="トップ画面に表示する変更履歴を入力してください"></textarea>
+          </div>
+          <button type="button" id="save-history-btn" class="btn btn-primary" style="width: 100%;">💾 変更履歴を保存</button>
+        </div>
+
+        <!-- トップページ自己紹介・お知らせ編集セクション -->
+        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 20px;">
+          <h2 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <span>🍞</span> トップ画面の自己紹介・お知らせ編集
+          </h2>
+          <div class="form-group">
+            <label class="form-label" for="profile-text-input">自己紹介・お知らせの文章</label>
+            <textarea id="profile-text-input" class="form-textarea" style="min-height: 110px;" placeholder="トップ画面下部に表示する自己紹介やお知らせを入力してください"></textarea>
+          </div>
+          <button type="button" id="save-profile-btn" class="btn btn-primary" style="width: 100%;">💾 自己紹介・お知らせを保存</button>
+        </div>
+
+        <!-- 他サイト・お問い合わせ編集セクション -->
+        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 20px;">
+          <h2 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <span>🔗</span> 「他サイト・問い合わせ」画面の編集
+          </h2>
+          <div class="form-group">
+            <label class="form-label" for="other-contact-input">ページ本文</label>
+            <textarea id="other-contact-input" class="form-textarea" style="min-height: 110px;" placeholder="他サイトの紹介やお問い合せ先を入力してください"></textarea>
+          </div>
+          <button type="button" id="save-other-contact-btn" class="btn btn-primary" style="width: 100%;">💾 他サイト・問い合わせを保存</button>
+        </div>
+
+        <!-- Tips編集セクション -->
+        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px;">
+          <h2 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 12px;">💡 Tipsの追加・管理</h2>
+            <textarea id="new-tip-input" class="form-textarea" style="min-height: 80px;" placeholder="新しいTipテキストを入力（長文・改行可）"></textarea>
+          <button id="add-tip-btn" class="btn btn-secondary" style="width: 100%;">＋ Tipsを追加</button>
+        </div>
+
+      </div>
+
+      <!-- 右カラム: 既存ビルド一覧 ＆ Tips一覧 -->
+      <div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); margin-bottom: 24px;">
+          <h2 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px;">📚 登録済みビルド一覧 (順番入れ替え可)</h2>
+          <div id="admin-build-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 540px; overflow-y: auto; padding-right: 6px;">
+            <!-- JavaScriptで動的生成 -->
+          </div>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm);">
+          <h2 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 14px;">💡 登録済みTips一覧 (順番入れ替え・編集可)</h2>
+          <ul id="admin-tips-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto; padding-right: 6px;">
+            <!-- JavaScriptで動的生成 -->
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/data.js?v=1.2.0"></script>
+  <script src="js/admin.js?v=1.2.0"></script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>炊きパン’s BPBビルドまとめ - バックパックバトルズWiki</title>
+  <meta name="description" content="Steamのゲーム『バックパックバトルズ（Backpack Battles）』のクラス別ビルド・おすすめ構成・Tipsまとめ個人Wikiサイトです。">
+  <link rel="stylesheet" href="css/style.css?v=1.1.2">
+  <script>
+    (function() {
+      var saved = localStorage.getItem('bpb_theme');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- ランダムTips通知バー (固定・自動スライド更新・一時停止/再生対応) -->
+  <div class="tips-bar" id="random-tips-bar">
+    <span class="tips-badge">💡 Tips</span>
+    <div class="tips-text-container">
+      <span class="tips-text" id="random-tips-text">読み込み中...</span>
+    </div>
+    <button class="tips-control-btn" id="tips-toggle-btn" title="自動切り替えを停止">⏸</button>
+  </div>
+
+  <!-- ヘッダー -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="#" class="brand-logo" id="logo-btn">
+        <div class="logo-icon">🍞</div>
+        <span>炊きパン’s BPBビルドまとめ</span>
+      </a>
+
+      <!-- 🌟 来訪者カウンターバッジ -->
+      <div class="global-counter-badge" id="global-counter" title="総来訪者数">
+        <span class="counter-label">👀 Total Visits:</span>
+        <div class="global-counter-value" id="global-counter-value">
+          <span class="counter-digit offline-dash">ー</span>
+        </div>
+      </div>
+
+      <!-- 🌙/☀️ テーマ切替ボタン -->
+      <button id="theme-toggle-btn" class="theme-toggle-btn" title="ダークモード/ライトモード切替">🌙</button>
+
+      <div class="sub-links">
+        <a href="#" class="sub-link-item" id="nav-other-contact">🔗 他サイト・問い合わせ</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- クラス・カテゴリナビゲーション (スマホ改行防止・横スクロール) -->
+  <div class="nav-scroll-wrapper">
+    <nav class="main-nav" id="main-nav-tabs">
+      <!-- JavaScriptで動的生成 -->
+    </nav>
+  </div>
+
+  <!-- メインコンテンツ表示エリア -->
+  <main class="main-container">
+    
+    <!-- ページタイトルセクション -->
+    <div class="page-title-section" id="page-title-section">
+      <!-- JavaScriptで表示更新 -->
+    </div>
+
+    <!-- ビルド分類クイックナビゲーション表 -->
+    <div class="rank-summary-card" id="rank-summary-card" style="display: none;">
+      <div class="rank-summary-header">
+        <span>📊 ビルド一覧（クリックで移動）</span>
+      </div>
+      <div class="rank-grid">
+        <div class="rank-column">
+          <div class="rank-column-header">
+            <span>強い</span>
+            <span class="rank-tag tag-s">S</span>
+          </div>
+          <ul class="rank-item-list" id="rank-list-s"></ul>
+        </div>
+        <div class="rank-column">
+          <div class="rank-column-header">
+            <span>そこそこ</span>
+            <span class="rank-tag tag-a">A</span>
+          </div>
+          <ul class="rank-item-list" id="rank-list-a"></ul>
+        </div>
+        <div class="rank-column">
+          <div class="rank-column-header">
+            <span>微妙</span>
+            <span class="rank-tag tag-b">B</span>
+          </div>
+          <ul class="rank-item-list" id="rank-list-b"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ビルドカード一覧コンテナ -->
+    <div class="build-list-container" id="build-list-container">
+      <!-- JavaScriptで動的描画 -->
+    </div>
+
+  </main>
+
+  <!-- 右下：最上部に戻るボタン -->
+  <button class="back-to-top" id="back-to-top-btn" title="ページの最上部へ戻る">▲</button>
+
+  <!-- データファイル・アプリ処理の読み込み (キャッシュクリア用クエリ付与) -->
+  <script src="js/data.js?v=1.1.4"></script>
+  <script src="js/app.js?v=1.1.4"></script>
+</body>
+</html>
