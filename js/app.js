@@ -1,12 +1,22 @@
 // バックパックバトルズ ビルドまとめ メインアプリケーションロジック
 
 (function() {
-  // 1. データ初期化（ローカル編集データがあれば最優先読み込み、無ければ data.js を初期値として利用）
+  // 1. データ初期化（ローカル編集データがあれば読み込みつつ、データ整合性を保護）
   let currentData = BPB_DATA;
   const savedData = localStorage.getItem('bpb_custom_data');
   if (savedData) {
     try {
-      currentData = JSON.parse(savedData);
+      const parsed = JSON.parse(savedData);
+      if (parsed && typeof parsed === 'object') {
+        currentData = parsed;
+        // 🌟 ブラウザの古データの都合で history や最新 tips が欠損している場合は data.js から復元
+        if (!currentData.history && BPB_DATA.history) {
+          currentData.history = BPB_DATA.history;
+        }
+        if (!currentData.tips || currentData.tips.length === 0) {
+          currentData.tips = BPB_DATA.tips;
+        }
+      }
     } catch(e) {
       console.warn("Failed to parse saved data from localStorage, fallback to BPB_DATA", e);
     }
