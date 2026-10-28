@@ -37,16 +37,35 @@
   const backToTopBtn = document.getElementById('back-to-top-btn');
   const logoBtn = document.getElementById('logo-btn');
 
-  // --- 🌟 世界累計来訪者カウンター機能 (二重API＋ローカルフォールバック対応) ---
+  // --- 🌟 世界累計来訪者カウンター機能 (二重API＋堅牢ローカルフォールバック対応) ---
+  // 初期ベース値: 900
   async function initGlobalCounter() {
-    // 1. メインAPI: Abacus Counter API
+    const BASE_COUNT = 900;
+    const STORAGE_KEY = 'bpb_visit_counter';
+
+    // 過去にキャッシュされた値があれば即座に画面反映（チラつき防止）
+    let cached = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+    if (cached >= BASE_COUNT) {
+      updateGlobalCounterUI(cached);
+    } else {
+      updateGlobalCounterUI(BASE_COUNT);
+    }
+
+    // 1. メインAPI: CountAPI (Cloudflare高速キャッシュ・高安定)
     try {
-      const response = await fetch("https://abacus.jasoncameron.dev/hit/katad-bpb-wiki/pageviews");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const response = await fetch("https://countapi.mileshilliard.com/api/v1/hit/katad-bpb3-wiki-visits", {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
       if (response.ok) {
         const data = await response.json();
-        const count = data.value || data.count;
+        const count = typeof data.value === 'number' ? data.value : data.count;
         if (typeof count === 'number' && count > 0) {
-          updateGlobalCounterUI(count);
+          const finalCount = Math.max(BASE_COUNT, count);
+          localStorage.setItem(STORAGE_KEY, finalCount.toString());
+          updateGlobalCounterUI(finalCount);
           return;
         }
       }
@@ -54,14 +73,21 @@
       console.warn("Primary counter API failed, trying secondary...", e);
     }
 
-    // 2. サブAPI: CounterAPI.dev
+    // 2. サブAPI: Abacus Counter API (タイムアウト短縮対応)
     try {
-      const response = await fetch("https://api.counterapi.dev/v1/katad-bpb-wiki/pageviews/up");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const response = await fetch("https://abacus.jasoncameron.dev/hit/katad-bpb-wiki/pageviews", {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
       if (response.ok) {
         const data = await response.json();
-        const count = data.count || data.value;
+        const count = data.value || data.count;
         if (typeof count === 'number' && count > 0) {
-          updateGlobalCounterUI(count);
+          const finalCount = Math.max(BASE_COUNT, count);
+          localStorage.setItem(STORAGE_KEY, finalCount.toString());
+          updateGlobalCounterUI(finalCount);
           return;
         }
       }
@@ -69,10 +95,10 @@
       console.warn("Secondary counter API failed, fallback to local counter...", e);
     }
 
-    // 3. ローカルフォールバック（オフライン・通信ブロック時）
-    let localCount = parseInt(localStorage.getItem('bpb_visit_counter') || '10', 10);
-    localCount++;
-    localStorage.setItem('bpb_visit_counter', localCount.toString());
+    // 3. ローカルフォールバック（オフライン・通信ブロック時: BASE_COUNTを保証）
+    let localCount = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+    localCount = Math.max(BASE_COUNT, localCount) + 1;
+    localStorage.setItem(STORAGE_KEY, localCount.toString());
     updateGlobalCounterUI(localCount);
   }
 
